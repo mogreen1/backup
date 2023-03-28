@@ -1,0 +1,31 @@
+---
+- name: Play 1 - Fetch file from host
+  hosts: fd*.shadowman.dev
+  gather_facts: false
+  tasks:
+
+  - name: Fetch file to EE
+    ansible.builtin.fetch:
+      src: "/etc/{{ item }}"
+      dest: "/tmp/host_vars/{{ inventory_hostname }}/{{ item }}.txt"
+      flat: true
+    become: true
+    loop:
+      - sudoers
+      - passwd
+      - group
+
+  - name: Sync with Gitrepo
+    ansible.builtin.git:
+      repo: 'git@github.com:mogreen1/backup.git'
+      dest: /tmp/host_vars
+      version: main
+      #accept_newhostkey: true
+      #key_file: /certs/id_ed25519
+    delegate_to: localhost
+
+  - name: Update git repo with backup
+    ansible.builtin.shell: git add -A && git commit -m "Synching new backup to repo" && git push
+    args:
+      chdir: /tmp/host_vars
+    delegate_to: localhost

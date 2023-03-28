@@ -1,0 +1,36 @@
+---
+- name: Play 1 - Fetch file from host
+  hosts: fd*.shadowman.dev
+  gather_facts: false
+  tasks:
+
+  - name: Fetch file to EE
+    ansible.builtin.fetch:
+      src: "/etc/{{ item }}"
+      dest: "/tmp/{{ inventory_hostname }}/{{ item }}.txt"
+      flat: true
+    become: true
+    run_once: true
+    register: myfile
+    loop:
+      - sudoers
+      - passwd
+      - group
+
+  - name: Update SNOW CMDB
+    servicenow.itsm.configuration_item:
+      state: "{{ status }}"
+      name: "{{ inventory_hostname }}"
+      sys_class_name: cmdb_ci_server
+      #sys_id: "{{ system_id }}"
+      attachments:
+        - path: "/tmp/{{ inventory_hostname }}/{{ item }}.txt"
+      other:
+        #default_gateway: "{{ ansible_facts['default_ipv4']['gateway'] }}"
+        os_version: "{{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}"
+        cpu_count: "{{ ansible_facts['processor_nproc'] }}"
+    delegate_to: localhost
+    loop:
+      - sudoers
+      - passwd
+      - group
