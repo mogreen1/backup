@@ -97,6 +97,7 @@ Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin
 ## The COMMANDS section may have other options added to it.
 ##
 ## Allow root to run any commands anywhere 
+fd1	ALL=(ALL) 	ALL
 root	ALL=(ALL) 	ALL
 
 ## Allows members of the 'sys' group to run networking, software, 
